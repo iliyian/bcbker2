@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<body>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+    }
+    canvas {
+      border: solid;
+    }
+  </style>
+
+  <canvas id="canvas" width="400" height="600" ></canvas>
+  
+  <script>
+    var canvas = document.getElementById('canvas')
+    ctx = canvas.getContext('2d')
+
+    var gameBoard = {
+
+    }
+
+    var blocks = []
+
+    var prepare_start = {
+      x: 76, y: 120, w: 248, h: 150,
+      draw: function() {
+        draw_prepare_rect(this)
+        ctx.fillText('Start', 200, 220)
+      }
+    }
+
+    var prepare_set = {
+      x: 76, y: 360, w: 248, h: 150,
+      draw: function() {
+        draw_prepare_rect(this)
+        ctx.fillText('Settings', 200, 460)
+      }
+    }
+
+    function draw_prepare_rect(elem) {
+      ctx.fillStyle = 'black'
+      ctx.fillRect(elem.x, elem.y, elem.w, elem.h) 
+      ctx.font = '70px serif'
+      ctx.fillStyle = 'white'
+      ctx.textAlign = 'center'
+    }
+
+    function inside(obj, x, y) {
+      if (obj.x < x && x < obj.x + obj.w
+          && obj.y < y && y < obj.y + obj.h) {
+            return true
+          }
+      else {
+        return false
+      }
+    }
+
+    function prepare() {
+      ctx.clearRect(0, 0, 400, 600)
+      prepare_start.draw()
+      prepare_set.draw()
+      canvas.addEventListener('click', handle_prepare_click)
+    }
+
+    function handle_prepare_click(ev) {
+      let x = ev.offsetX, y = ev.offsetY
+      if (inside(prepare_start, x, y)) {
+        canvas.removeEventListener('click', handle_prepare_click)
+        // prepare_animate()
+        init()
+      } else if (inside(prepare_set, x, y)) {
+        alert("WIP")
+      }
+    }
+
+    function prepare_animate() {
+      let speed1 = Math.ceil(Math.random() * 500) + 500;
+      let way1 = Math.ceil(Math.random() * 4);
+      let speed2 = Math.ceil(Math.random() * 500) + 500;
+      let way2 = Math.ceil(Math.random() * 4);
+
+      dx = 0, dy = 0
+      switch (way1) {
+        case 1:
+          dx = - (prepare_start.x + prepare_start.w)
+          break
+        case 2:
+          dx = prepare_start.x + prepare_start.w
+          break
+        case 3:
+          dy = prepare_start.y + prepare_start.h
+          break
+        case 4:
+          dy = - (prepare_start.y + prepare_start.h)
+          break
+      }
+      prepare_animate_draw(dx, dy, prepare_start.x, prepare_start.y, w, h)
+
+    }
+
+    function prepare_animate_draw(dx, dy, tx, ty, sp, w, h) {
+      let vx = dx / sp, vy = dy / sp
+      let frame = 25
+      setTimeout(() => {
+        ctx.clearRect(tx, ty, w, h)
+        tx -= vx * 25, ty -= vy * 25
+        ctx.fillRect(tx, vx, w, h)
+      }, sp / 25);
+    }
+
+    function init() {
+      let start
+      for (let i = -1; i < 4; i++) {
+        let choose = Math.floor(Math.random() * 4)
+        for (let j = 0; j < 4; j++) {
+          b = {
+            x: j*100,
+            y: i*150,
+            color: 'white'
+          }
+          blocks.push(b)
+          if (choose == j) {
+            b.color = 'black'
+          }
+          if (i == 3 && choose == j) {
+            start = j
+          }
+        }
+      }
+      draw()
+      ctx.restore()
+      ctx.font = '150px serif bold'
+      ctx.fillStyle = 'white'
+      ctx.fillText('Start', blocks[16+start].x + 50, blocks[16+start].y + 100)
+    }
+
+    function draw() {
+      blocks.forEach(element => {
+        ctx.fillStyle = element.color
+        ctx.fillRect(element.x, element.y, 100, 150)
+      });
+    }
+    ctx.save()
+
+    prepare()
+    </script>    
+</body>
+</html>
