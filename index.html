@@ -45,7 +45,7 @@
     function draw_prepare_rect(elem) {
       ctx.fillStyle = 'black'
       ctx.fillRect(elem.x, elem.y, elem.w, elem.h) 
-      ctx.font = '70px serif'
+      ctx.font = '50px serif'
       ctx.fillStyle = 'white'
       ctx.textAlign = 'center'
     }
@@ -61,6 +61,8 @@
     }
 
     function prepare() {
+      lost = false
+      blocks = []
       ctx.clearRect(0, 0, 400, 600)
       prepare_start.draw()
       prepare_set.draw()
@@ -113,39 +115,183 @@
       }, sp / 25);
     }
 
+    let gaming = false, lost = false
     function init() {
-      let start
       for (let i = -1; i < 4; i++) {
         let choose = Math.floor(Math.random() * 4)
+        let line = []
         for (let j = 0; j < 4; j++) {
           b = {
             x: j*100,
             y: i*150,
-            color: 'white'
+            w: 100,
+            h: 150,
+            color: choose == j ? 'black' : 'white'
           }
-          blocks.push(b)
-          if (choose == j) {
-            b.color = 'black'
-          }
+          line.push(b)
+
           if (i == 3 && choose == j) {
-            start = j
+            blocks['start'] = j
           }
         }
+        blocks.push(line)
       }
+
+      blocks.w = 100, blocks.h = 150;
+      console.log(blocks)
+
+      ctx.save()
       draw()
-      ctx.restore()
-      ctx.font = '150px serif bold'
+      ctx.save()
+      ctx.font = '30px serif'
       ctx.fillStyle = 'white'
-      ctx.fillText('Start', blocks[16+start].x + 50, blocks[16+start].y + 100)
+      startBlock = blocks[blocks.length-1][blocks['start']]
+      ctx.fillText('Start', startBlock.x + 50, startBlock.y + 100)
+      canvas.addEventListener('click', handle_gaming_click)
+      // canvas.addEventListener('click', handle_gaming_click)
+    }
+
+    function queryBlock(x, y) {
+      console.log('queryed %d %d', x, y)
+      y -= blocks[2][0].y - blocks.h
+      return blocks[Math.floor(y / blocks.h)+1][Math.floor(x / blocks.w)]
+    }
+
+    function start() {
+      lost = false
+      scores = 0
+      move()
+    }
+
+    function lose() {
+      ctx.clearRect(0, 0, 400, 600)
+      ctx.save()
+
+      ctx.fillStyle = 'green'
+      ctx.fillRect(0, 0, 400, 600)
+      ctx.save()
+
+      ctx.fillStyle = 'white'
+      ctx.fillRect(38, 114, 324, 150)
+      ctx.save()
+
+      ctx.fillStyle = 'black'
+      againRect = {
+        x: 76, y: 372, w: 248, h: 150
+      }
+      ctx.fillRect(againRect.x, againRect.y, againRect.w, againRect.h)
+      ctx.save()
+
+      ctx.fillStyle = 'red'
+      ctx.font = 'serif 60px'
+      ctx.fillText("You have got " + scores + " scores", 200, 200)
+      ctx.save()
+
+      ctx.fillStyle = 'white'
+      ctx.font = 'serif 160px'
+      ctx.fillText('Try Again', 200, 450)
+
+      canvas.removeEventListener('click', handle_gaming_click)
+      canvas.addEventListener('click', handle_again_click)
+    }
+
+    function handle_again_click(ev) {
+      let x = ev.offsetX, y = ev.offsetY
+      if (inside(againRect, x, y)) {
+        canvas.removeEventListener('click', handle_again_click)
+        prepare()
+      }
+    }
+
+    speed = 8
+    function move() {
+      if (blocks[0][0].y + 20 > 0) {
+        update_line()
+      } else {
+        blocks.forEach(line => {
+          line.forEach(block => {
+            block.y += speed
+          })
+        })
+      }
+      moving = setTimeout(move, 20)
+      window.requestAnimationFrame(draw)
+      if (!check()) {
+        draw()
+        lost = true
+        setTimeout(() => {
+          lose()
+        }, 1000);
+      }
+    }
+
+    function check() {
+      let lastline = blocks[blocks.length-1], flag = true
+      lastline.forEach(element => {
+        if (element.color == 'black') {
+          flag = false
+          element.color = 'red'
+        }
+      });
+      return flag
+    }
+
+    function update_line() {
+      blocks.pop()
+      let line = [], choose = Math.floor(Math.random() * 4)
+      for ( let i = 0; i < 4; i++ ) {
+        let block = {
+            x: i*100,
+            y: -150,
+            w: 100,
+            h: 150,
+            color: choose == i ? 'black' : 'white'
+        }
+        line.push(block)
+      }
+      blocks.unshift(line)
+    }
+
+    scores = 0
+    function scored() {
+      scores ++;
+    }
+
+    function handle_gaming_click(ev) {
+      let x = ev.offsetX, y = ev.offsetY
+      let block = queryBlock(x, y)
+      
+      if (lost) return false
+
+      if (!gaming && inside(startBlock, x, y)) {
+        gaming = true
+        block.color = 'white'
+        start()
+      } else if (block.color == 'white'){
+        block.color = 'red'
+        window.requestAnimationFrame(draw)
+        if (typeof moving != 'undefined') clearTimeout(moving)
+        setTimeout(() => {
+          lost = true
+          gaming = false
+          lose()
+        }, 1000);
+      } else if (gaming && block.color == 'black') {
+        block.color = 'white'
+        scored()
+        window.requestAnimationFrame(draw)
+      }
     }
 
     function draw() {
-      blocks.forEach(element => {
-        ctx.fillStyle = element.color
-        ctx.fillRect(element.x, element.y, 100, 150)
+      if (lost) return
+      blocks.forEach(line => {
+        line.forEach(element => {
+          ctx.fillStyle = element.color
+          ctx.fillRect(element.x, element.y, element.w, element.h)
+        })
       });
     }
-    ctx.save()
 
     prepare()
     </script>    
