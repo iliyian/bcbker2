@@ -70,7 +70,8 @@
     }
 
     function handle_prepare_click(ev) {
-      let x = ev.offsetX, y = ev.offsetY
+      let x = ev.pageX - this.offsetLeft
+      let y = ev.pageY - this.offsetTop
       if (inside(prepare_start, x, y)) {
         canvas.removeEventListener('click', handle_prepare_click)
         // prepare_animate()
@@ -196,14 +197,15 @@
     }
 
     function handle_again_click(ev) {
-      let x = ev.offsetX, y = ev.offsetY
+      let x = ev.pageX - this.offsetLeft
+      let y = ev.pageY - this.offsetTop
       if (inside(againRect, x, y)) {
         canvas.removeEventListener('click', handle_again_click)
         prepare()
       }
     }
 
-    speed = 8
+    speed = 7
     function move() {
       if (blocks[0][0].y + 20 > 0) {
         update_line()
@@ -258,7 +260,8 @@
     }
 
     function handle_gaming_click(ev) {
-      let x = ev.offsetX, y = ev.offsetY
+      let x = ev.pageX - this.offsetLeft
+      let y = ev.pageY - this.offsetTop
       let block = queryBlock(x, y)
       
       if (lost) return false
