@@ -11,6 +11,8 @@
     }
     canvas {
       border: solid;
+      width: 400px;
+      height: 600px;
     }
   </style>
 
@@ -19,6 +21,7 @@
   <script>
     var canvas = document.getElementById('canvas')
     ctx = canvas.getContext('2d')
+    // ctx.translate(0.5, 0.5)
 
     var gameBoard = {
 
@@ -70,8 +73,11 @@
     }
 
     function handle_prepare_click(ev) {
-      let x = ev.pageX - this.offsetLeft
-      let y = ev.pageY - this.offsetTop
+      // alert("clicked!")
+      // let rect = canvas.getBoundingClientRect()
+      // let x = ev.clientX - rect.left
+      // let y = ev.clientY - rect.top
+      let x = ev.offsetX, y = ev.offsetY
       if (inside(prepare_start, x, y)) {
         canvas.removeEventListener('click', handle_prepare_click)
         // prepare_animate()
